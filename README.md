@@ -1,8 +1,24 @@
 # FaradayLnPaywall
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/faraday_ln_paywall`. To experiment with that code, run `bin/console` for an interactive prompt.
+This is a [Faraday](https://github.com/lostisland/faraday#readme) middleware that handles payment requests by the server
+and sends Bitcoin [lightning payments](https://lightning.network/). 
 
-TODO: Delete this and the text above, and describe your gem
+
+## How does it work? 
+
+This Faraday middleware checks if the server responds with a `402 Payment Required` HTTP status code and 
+a lightning invoice ([BOLT311](https://github.com/lightningnetwork/lightning-rfc/blob/master/11-payment-encoding.md)).
+If so it pays the invoice through the connected [lnd node](https://github.com/lightningnetwork/lnd/) and performs
+a second request with the proof of payment. 
+
+
+Have a look at [@philippgille related server implementation in Go](https://github.com/philippgille/ln-paywall).
+
+
+## Requirements
+
+The middleware uses the gRPC service provided by the [Lightning Network Daemon(lnd)](https://github.com/lightningnetwork/lnd/). 
+A running node with funded channels is required. Details about lnd can be found on their [github page](https://github.com/lightningnetwork/lnd/)
 
 ## Installation
 
@@ -12,23 +28,34 @@ Add this line to your application's Gemfile:
 gem 'faraday_ln_paywall'
 ```
 
-And then execute:
-
-    $ bundle
-
-Or install it yourself as:
-
-    $ gem install faraday_ln_paywall
-
 ## Usage
 
-TODO: Write usage instructions here
+Simply use the `FaradayLnPaywall::Middleware` in your Faraday connection:
 
-## Development
+```ruby
+conn = Faraday.new(:url => 'https://api.lightning.ws') do |faraday|
+  faraday.use FaradayLnPaywall::Middleware, { max_amount: 100 }
+  faraday.adapter  Faraday.default_adapter
+end
+puts conn.get("/translate?text=Danke&to=en").body
 
-After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake spec` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
+```
 
-To install this gem onto your local machine, run `bundle exec rake install`. To release a new version, update the version number in `version.rb`, and then run `bundle exec rake release`, which will create a git tag for the version, push git commits and tags, and push the `.gem` file to [rubygems.org](https://rubygems.org).
+## Configuration
+
+The middleware accepts the following configuration options: 
+
+* max_amount: the maximum amount of an invoice that will automatically be paid. Raises a FaradayLnPaywall::PaymentError if the server request a higher amount
+* address: the address of the lnd gRPC service( default: `localhost:10009`)
+* credentials: path to the tls.cert (default: `~/.lnd/tls.cert`)
+* macaroon: path to the macaroon path (default: `~/.lnd/data/chain/bitcoin/testnet/admin.macaroon`)
+
+
+## What is the Lightning Network?
+
+The [Lightning Network](https://en.wikipedia.org/wiki/Lightning_Network) allows to send real near-instant microtransactions with extremely low fees. 
+It is a second layer on top of the Bitcoin network (and other crypto currencies). 
+Thanks to this properties it can be used to monetize APIs. 
 
 ## Contributing
 
