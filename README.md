@@ -11,8 +11,9 @@ a lightning invoice ([BOLT311](https://github.com/lightningnetwork/lightning-rfc
 If so it pays the invoice through the connected [lnd node](https://github.com/lightningnetwork/lnd/) and performs
 a second request with the proof of payment. 
 
+### How does the server side look like?
 
-Have a look at [@philippgille related server implementation in Go](https://github.com/philippgille/ln-paywall).
+Have a look at [@philippgille's related server implementation in Go](https://github.com/philippgille/ln-paywall).
 
 
 ## Requirements
@@ -59,7 +60,7 @@ Thanks to this properties it can be used to monetize APIs.
 
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/[USERNAME]/faraday_ln_paywall.
+Bug reports and pull requests are welcome on GitHub at https://github.com/bumi/faraday_ln_paywall.
 
 ## License
 
