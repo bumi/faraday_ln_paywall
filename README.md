@@ -7,7 +7,7 @@ and sends Bitcoin [lightning payments](https://lightning.network/).
 ## How does it work? 
 
 This Faraday middleware checks if the server responds with a `402 Payment Required` HTTP status code and 
-a lightning invoice ([BOLT311](https://github.com/lightningnetwork/lightning-rfc/blob/master/11-payment-encoding.md)).
+a lightning invoice ([BOLT11](https://github.com/lightningnetwork/lightning-rfc/blob/master/11-payment-encoding.md)).
 If so it pays the invoice through the connected [lnd node](https://github.com/lightningnetwork/lnd/) and performs
 a second request with the proof of payment. 
 
