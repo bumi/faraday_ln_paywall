@@ -48,8 +48,8 @@ The middleware accepts the following configuration options:
 
 * `max_amount`: the maximum amount of an invoice that will automatically be paid. Raises a `FaradayLnPaywall::PaymentError` if the server request a higher amount
 * `address`: the address of the lnd gRPC service( default: `localhost:10009`)
-* `credentials`: path to the tls.cert (default: `~/.lnd/tls.cert`)
-* `macaroon`: path to the macaroon path (default: `~/.lnd/data/chain/bitcoin/testnet/admin.macaroon`)
+* `credentials_path`: path to the tls.cert (default: `~/.lnd/tls.cert`)
+* `macaroon_path`: path to the macaroon path (default: `~/.lnd/data/chain/bitcoin/testnet/admin.macaroon`)
 
 
 ## What is the Lightning Network?
