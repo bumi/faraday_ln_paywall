@@ -13,7 +13,8 @@ a second request with the proof of payment.
 
 ### How does the server side look like?
 
-Have a look at [@philippgille's related server implementation in Go](https://github.com/philippgille/ln-paywall).
+Have a look at the [rack middleware rack-lightning for ruby](https://github.com/bumi/rack-lightning) 
+or at [@philippgille's middleware for Go](https://github.com/philippgille/ln-paywall).
 
 
 ## Requirements
