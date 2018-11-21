@@ -51,7 +51,12 @@ The middleware accepts the following configuration options:
 * `address`: the address of the lnd gRPC service( default: `localhost:10009`)
 * `credentials_path`: path to the tls.cert (default: `~/.lnd/tls.cert`)
 * `macaroon_path`: path to the macaroon path (default: `~/.lnd/data/chain/bitcoin/testnet/admin.macaroon`)
-
+* `credentials`: instead of configuring a `credentials_path` you can pass the content of the tls.cert directly
+* `macaroon`: instead of configuring a `macaroon_path` you can pass the hex content of the macaroon directly
+    you can get the macaroon content like this:   
+    ```ruby
+    ::File.read(::File.expand_path("/path/to/admin.macaroon")).each_byte.map { |b| b.to_s(16).rjust(2,'0') }.join
+    ```
 
 ## What is the Lightning Network?
 
