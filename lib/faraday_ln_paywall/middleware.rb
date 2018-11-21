@@ -14,8 +14,10 @@ module FaradayLnPaywall
       @options[:address] ||= 'localhost:10009'
       @options[:timeout] ||= 5
       @options[:credentials] ||= File.read(File.expand_path(@options[:credentials_path] || "~/.lnd/tls.cert"))
-      macaroon_binary ||= File.read(File.expand_path(@options[:macaroon_path] || "~/.lnd/data/chain/bitcoin/testnet/admin.macaroon"))
-      @options[:macaroon] = macaroon_binary.each_byte.map { |b| b.to_s(16).rjust(2,'0') }.join
+      @options[:macaroon] ||= begin
+        macaroon_binary = ::File.read(::File.expand_path(@options[:macaroon_path] || "~/.lnd/data/chain/bitcoin/testnet/admin.macaroon"))
+        macaroon_binary.each_byte.map { |b| b.to_s(16).rjust(2,'0') }.join
+      end
       @lnd_client = Lnrpc::Lightning::Stub.new(@options[:address], GRPC::Core::ChannelCredentials.new(@options[:credentials]))
     end
 
@@ -50,7 +52,7 @@ module FaradayLnPaywall
           payment = pay(response_env)
           if payment && payment.payment_error == ""
             preimage = payment.payment_preimage.each_byte.map { |b| b.to_s(16).rjust(2, '0') }.join
-            request_env[:request_headers].merge!({'X-Preimage' => preimage})
+            request_env[:request_headers].merge!('X-Preimage' => preimage)
             @app.call(request_env)
           else
             raise PaymentError, payment.payment_error
