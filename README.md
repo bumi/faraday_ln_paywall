@@ -1,4 +1,4 @@
-# Faraday middleware for lightning paywalls
+# Faraday middleware to send lightning payments
 
 This is a [Faraday](https://github.com/lostisland/faraday#readme) middleware that handles payment requests by the server
 and sends Bitcoin [lightning payments](https://lightning.network/). 
