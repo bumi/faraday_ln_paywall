@@ -26,7 +26,7 @@ module FaradayLnPaywall
     end
 
     def validate_invoice!(invoice)
-      if !@options[:max_amount].nil? && @options[:max_amount] < invoice.amount
+      if !@options[:max_amount].nil? && @options[:max_amount] < invoice_amount_in_satoshi(invoice)
         raise PaymentError, "invoice amount greater than expected maximum of #{@options[:max_amount]}"
       end
       if !invoice.expiry.nil? && Time.now.to_i > invoice.timestamp + invoice.expiry.to_i
@@ -47,20 +47,35 @@ module FaradayLnPaywall
     end
 
     def call(request_env)
-      @app.call(request_env).on_complete do |response_env|
+      original_call = request_env.dup
+      response = @app.call(request_env)
+      response.on_complete do |response_env|
         if payment_requested?(response_env)
           payment = pay(response_env)
           if payment && payment.payment_error == ""
             preimage = payment.payment_preimage.each_byte.map { |b| b.to_s(16).rjust(2, '0') }.join
-            request_env[:request_headers].merge!('X-Preimage' => preimage)
-            @app.call(request_env)
+            original_call[:request_headers].merge!('X-Preimage' => preimage)
+            response = @app.call(original_call)
           else
             raise PaymentError, payment.payment_error
           end
         end
       end
+      response
     end
 
+    # todo move to Lightning/invoice gem
+    def invoice_amount_in_satoshi(invoice)
+      return if invoice.amount.nil?
+      multi = {
+        'm' => 0.001,
+        'u' => 0.000001,
+        'n' => 0.000000001,
+        'p' => 0.000000000001
+      }[invoice.multiplier]
+
+      (invoice.amount * multi * 100000000).to_i # amount in bitcoin * 100000000
+    end
   end
 end
 
