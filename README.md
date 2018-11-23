@@ -69,6 +69,11 @@ Thanks to this properties it can be used to monetize APIs.
 
 Bug reports and pull requests are welcome on GitHub at https://github.com/bumi/faraday_ln_paywall.
 
+## ToDo
+
+- [ ] namespace the grpc client
+- [ ] tests!! 
+
 ## License
 
 The gem is available as open source under the terms of the [MIT License](http://opensource.org/licenses/MIT).
