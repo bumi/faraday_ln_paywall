@@ -36,9 +36,11 @@ module FaradayLnPaywall
 
     def pay(env)
       invoice = Lightning::Invoice.parse(env.body)
+      log(:info, "amount: #{invoice_amount_in_satoshi(invoice)} description: #{invoice.description} payment_hash: #{invoice.payment_hash}")
       validate_invoice!(invoice)
 
       Timeout::timeout(@options[:timeout], PaymentError, "payment execution expired") do
+        log(:info, "sending payment")
         @lnd_client.send_payment_sync(
           Lnrpc::SendRequest.new(payment_request: env.body),
           { metadata: { macaroon: @options[:macaroon] }}
@@ -51,12 +53,16 @@ module FaradayLnPaywall
       response = @app.call(request_env)
       response.on_complete do |response_env|
         if payment_requested?(response_env)
+          log(:info, "payment requested")
           payment = pay(response_env)
           if payment && payment.payment_error == ""
             preimage = payment.payment_preimage.each_byte.map { |b| b.to_s(16).rjust(2, '0') }.join
+            log(:info, "paid preimage: #{preimage}")
             original_call[:request_headers].merge!('X-Preimage' => preimage)
+            log(:info, "sending original request with preimage header")
             response = @app.call(original_call)
           else
+            log(:error, "payment error #{payment.payment_error}")
             raise PaymentError, payment.payment_error
           end
         end
@@ -75,6 +81,10 @@ module FaradayLnPaywall
       }[invoice.multiplier]
 
       (invoice.amount * multi * 100000000).to_i # amount in bitcoin * 100000000
+    end
+
+    def log(level, message)
+      @options[:logger].send(level, message) if @options[:logger]
     end
   end
 end
