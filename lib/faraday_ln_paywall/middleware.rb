@@ -1,7 +1,5 @@
-require 'grpc'
+require 'lnrpc'
 require 'lightning/invoice'
-
-ENV['GRPC_SSL_CIPHER_SUITES'] = "HIGH+ECDSA"
 
 module FaradayLnPaywall
   class PaymentError < StandardError; end
@@ -11,14 +9,8 @@ module FaradayLnPaywall
     def initialize(app, options = {})
       super(app)
       @options = options
-      @options[:address] ||= 'localhost:10009'
-      @options[:timeout] ||= 5
-      @options[:credentials] ||= File.read(File.expand_path(@options[:credentials_path] || "~/.lnd/tls.cert"))
-      @options[:macaroon] ||= begin
-        macaroon_binary = ::File.read(::File.expand_path(@options[:macaroon_path] || "~/.lnd/data/chain/bitcoin/testnet/admin.macaroon"))
-        macaroon_binary.each_byte.map { |b| b.to_s(16).rjust(2,'0') }.join
-      end
-      @lnd_client = Lnrpc::Lightning::Stub.new(@options[:address], GRPC::Core::ChannelCredentials.new(@options[:credentials]))
+      @options[:timeout] ||= 30
+      @lnd_client = Lnrpc::Client.new(@options)
     end
 
     def payment_requested?(env)
@@ -41,10 +33,7 @@ module FaradayLnPaywall
 
       Timeout::timeout(@options[:timeout], PaymentError, "payment execution expired") do
         log(:info, "sending payment")
-        @lnd_client.send_payment_sync(
-          Lnrpc::SendRequest.new(payment_request: env.body),
-          { metadata: { macaroon: @options[:macaroon] }}
-        )
+        @lnd_client.send_payment_sync(payment_request: env.body)
       end
     end
 
@@ -56,7 +45,7 @@ module FaradayLnPaywall
           log(:info, "payment requested")
           payment = pay(response_env)
           if payment && payment.payment_error == ""
-            preimage = payment.payment_preimage.each_byte.map { |b| b.to_s(16).rjust(2, '0') }.join
+            preimage = payment.payment_preimage.each_byte.map { |b| b.to_s(16).rjust(2, '0') }.join # .unpack("H*")
             log(:info, "paid preimage: #{preimage}")
             original_call[:request_headers].merge!('X-Preimage' => preimage)
             log(:info, "sending original request with preimage header")

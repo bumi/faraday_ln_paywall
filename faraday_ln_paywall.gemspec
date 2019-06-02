@@ -28,5 +28,5 @@ Gem::Specification.new do |spec|
 
   spec.add_dependency "lightning-invoice", "~> 0.1.2"
   spec.add_dependency "faraday", "> 0.8"
-  spec.add_dependency "grpc", ">= 1.16.0"
+  spec.add_dependency "lnrpc", "~> 0.6.1"
 end
