@@ -71,7 +71,6 @@ Bug reports and pull requests are welcome on GitHub at https://github.com/bumi/f
 
 ## ToDo
 
-- [ ] namespace the grpc client
 - [ ] tests!! 
 
 ## License
